@@ -23,7 +23,7 @@ async def send_message(message, user_message, my_database, ):
 
 
 def run_discord_bot():
-    TOKEN = 'MTEzNTYzMTUwMDEwNTI0MDcxMA.GKzrwN.Z3ixF-VMB6j9BvfM7pUCEwN0lZaXXuWE0Z9uCM'
+    TOKEN = 'MTEzNTYzMTUwMDEwNTI0MDcxMA.Gl0PnW.kAilrIdYshfjaN2vEcXJUhurqjbY44-Msm6DM0'
     client = discord.Client(intents=discord.Intents.all())
     my_database = SimpleSQLiteDatabase('my_database.db')
     logging.basicConfig(filename='bot.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

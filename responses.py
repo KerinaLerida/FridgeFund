@@ -1,6 +1,6 @@
 import bot
-import database
 import logging
+import random
 
 
 def achat(my_database, id_user, item_name, nb):  # achat => si quantity >=1 et balance >=price_item
@@ -20,22 +20,38 @@ def achat(my_database, id_user, item_name, nb):  # achat => si quantity >=1 et b
     else:
         return "Plus de stock pour ce produit :("
 
+
+def coin_flip(user_id, user_choice, bet, my_database):
+    if float(my_database.get_balance_by_id(user_id)) >= bet:
+        result = random.choice(["heads", "tails"])
+        if result == user_choice:
+            my_database.update_balance_by_id(float(bet), user_id)
+            return f"Bravo ! C'est {result} ! Vous avez gagné {bet}."
+        else:
+            my_database.update_balance_by_id(-1 * float(bet), user_id)
+            return f"Dommage... C'est {result}. Vous avez perdu {bet}."
+    else:
+        return "Solde insuffisant pour parier."
+
+
 def help_command(message, msg_bureau, msg_cotisant):
     s = ""
     if bot.check_role("Bureau", message):
         s = " ,or , " + msg_bureau
     return "Just try: " + msg_cotisant + s
 
+
 def handle_response(message, strmessage, my_database):
     p_message = strmessage.lower()
     author = message.author  # name
     id_author = author.id
     print("Message sent by " + str(message.author) + " : \"" + message.content + "\" [ id: " + str(id_author) + " ]")
-    logging.info("Message sent by " + str(message.author) + " : \"" + message.content + "\" [ id: " + str(id_author) + " ]")
+    logging.info(
+        "Message sent by " + str(message.author) + " : \"" + message.content + "\" [ id: " + str(id_author) + " ]")
 
     # Crée : un wallet si l'user n'en a pas
     name_author = str(author)
-    if not check_user_exit(id_author, my_database):
+    if not check_user_exist(id_author, my_database):
         my_database.insert_user(id_author, name_author, name_author, 0)
         return "Your wallet has been created!"
     elif name_author != my_database.get_user_name_by_id(id_author):  # MAJ : name/pseudo user
@@ -47,6 +63,12 @@ def handle_response(message, strmessage, my_database):
     command = args[0]  # Command word
     if command == 'hello' and len(args) == 1:
         return 'Hey there!'
+
+    if command == "coinflip" and len(args) == 3:
+        if args[1] == "heads" or args[1] == "tails":
+            return coin_flip(id_author, args[1], int(args[2]), my_database)
+        else:
+            return "You can bet on heads or tail, but not on " + args[1]
 
     if command == "help":
         if len(args) == 1:
@@ -83,13 +105,13 @@ $delete item <nom_item> : Supprime un item
 """
             return supremetie_bureau
 
-    if command == "user" and check_user_exit(id_author, my_database):
+    if command == "user" and check_user_exist(id_author, my_database):
         return "You already have a wallet.."
 
     if command == "wallet":
         if len(args) == 1:
             return affiche_balance(None, id_author, my_database)
-        elif len(args) == 2 and bot.check_role("Bureau", message) and check_user_exit(args[1], my_database):
+        elif len(args) == 2 and bot.check_role("Bureau", message) and check_user_exist(args[1], my_database):
             return affiche_balance(id_author, args[1], my_database)
 
         return help_command(message, "$wallet id_user", "$wallet")
@@ -130,13 +152,11 @@ $delete item <nom_item> : Supprime un item
             return achat(my_database, id_author, arg_1, 1)
         elif len(args) == 3 and check_item_exist(arg_1, my_database):
             return achat(my_database, id_author, arg_1, args[2])
-        elif len(args) == 4 and bot.check_role("Bureau", message) and check_user_exit(args[3], my_database):
+        elif len(args) == 4 and bot.check_role("Bureau", message) and check_user_exist(args[3], my_database):
             return achat(my_database, args[3], arg_1, args[2])
         # refaire msg bureau ou pas
         return help_command(message, "$buy item_name quantity_taken id_user",
                             "$buy item_name ,or , $buy item_name quantity_taken")
-
-
 
     # *************************************** Bureau suprématie *********************************************
     if command == "create" and bot.check_role("Bureau", message):
@@ -144,7 +164,7 @@ $delete item <nom_item> : Supprime un item
         if len(args) == 5:
             arg_3 = args[3]
             arg_4 = args[4]
-            if args[1] == "user" and not check_user_exit(arg_2, my_database):
+            if args[1] == "user" and not check_user_exist(arg_2, my_database):
                 my_database.insert_user(int(arg_2), arg_3, arg_3, float(arg_4))
                 return "You created the user : " + str(arg_3)
             elif args[1] == "item" and not check_item_exist(arg_2, my_database):
@@ -158,11 +178,11 @@ $delete item <nom_item> : Supprime un item
             arg_2 = args[2]
             arg_3 = args[3]
 
-            if check_user_exit(arg_2, my_database):
+            if check_user_exist(arg_2, my_database):
                 if arg_1 == "balance":
-                    old_balance = my_database.get_balance_by_id(arg_1)
-                    my_database.update_balance_by_id(arg_1, arg_3)
-                    return "Update: " + affiche_balance(id_author, arg_1, my_database) + "(Old balance: " + str(
+                    old_balance = my_database.get_balance_by_id(arg_2)
+                    my_database.update_balance_by_id(arg_3, arg_2)
+                    return "Update: " + affiche_balance(int(id_author), int(arg_2), my_database) + " (Old balance: " + str(
                         old_balance) + " ) "
                 elif arg_1 == "name":
                     old_realname = my_database.get_user_realname_by_id(arg_1)
@@ -184,7 +204,7 @@ $delete item <nom_item> : Supprime un item
         arg_1 = args[1]
         if len(args) == 3:
             arg_2 = args[2]
-            if arg_1 == "user" and check_user_exit(arg_2, my_database):
+            if arg_1 == "user" and check_user_exist(arg_2, my_database):
                 name_delete_user = str(my_database.get_user_name_by_id(arg_2))
                 my_database.delete_user_by_id(arg_2)
                 return "You have deleted the following user: " + name_delete_user
@@ -194,7 +214,7 @@ $delete item <nom_item> : Supprime un item
         return "/!\ Delete: $delete user id_user ,or , $delete item item_name"
 
 
-def check_user_exit(id, my_database):
+def check_user_exist(id, my_database):
     return my_database.user_exist_by_id(id)
 
 
