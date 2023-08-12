@@ -85,7 +85,7 @@ class SimpleSQLiteDatabase:
     def get_all_users(self):
         select_all_query = '''
             SELECT id, name, realname, balance
-            FROM users ORDER BY balance ASC
+            FROM users ORDER BY balance DESC
         '''
         with self.connection:
             cursor = self.connection.execute(select_all_query)
