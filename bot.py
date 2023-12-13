@@ -50,7 +50,7 @@ async def send_message(message,user_message,mydatabase, is_private):
 
 
 def run_discord_bot():
-    TOKEN = 'MTEzNTYzMTUwMDEwNTI0MDcxMA.GKzrwN.Z3ixF-VMB6j9BvfM7pUCEwN0lZaXXuWE0Z9uCM'
+    TOKEN = METTRE SON TOKEN
     client = discord.Client(intents=discord.Intents.all())
     mydatabase = SimpleSQLiteDatabase('my_database.db')
 
