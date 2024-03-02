@@ -1,6 +1,6 @@
-BOT_TOKEN                       = METTRE SON TOKEN
-SERVER_ID                       = 884026358387335218
-DEFAULT_CHANNEL_ID              = 1136593062366285914
+BOT_TOKEN                       = "METTRE SON TOKEN ICI"
+SERVER_ID                       = 0
+DEFAULT_CHANNEL_ID              = 0
 ADMIN_ROLE                      = "Bureau"
 
 
